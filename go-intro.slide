@@ -1,0 +1,585 @@
+Go Introduction
+FreakOut 社内勉強会
+24 Jul 2015
+
+yoheimuta
+yoheimuta@gmail.com
+
+
+* 自己紹介 (1/3)
+
+M.T.Burn チームのエンジニア
+
+- 現在、Go 人いる
+
+
+* 自己紹介 (2/3)
+
+最近までやっていた（いる）こと
+
+- 入札単価の自動最適化
+- iOS SDK のアップデート
+- Android SDK のアップデート
+- Redis, AWS, BigQuery などなどインフラ周りの運用
+
+
+* 自己紹介 (3/3)
+
+Go は 1 年前くらいから注目している
+
+- GoCon 2014 Autumn, 2015 Summer に行ってきたり
+- コマンドラインツールをつくってみたり
+
+[[http://qiita.com/yoheimuta/items/81763237dc41ae33e891][勉強会 - まとめ Go Conference 2014 autumn - Qiita]]
+
+
+* This talk
+
+1. Go の概要
+
+2. Go のコンセプト: 単純さと可読性
+
+3. Go の機能: インターフェース、ゴルーチン、チャネル
+
+4. Go tools
+
+5. Go でコマンドラインツールをつくる
+
+6. リファレンスの紹介
+
+.image go-intro/gopherswrench.jpg 250 _
+
+
+* Go の概要
+
+
+* 開発時期
+
+2009 年 11 月 10 日（オープンソース化から Go 周年目）
+
+最新バージョンは v1.4
+
+.image go-intro/5years.png 350 _
+
+* 著名な開発者たち（1/2）
+
+Ken Thompson
+
+- C 言語の開発者（代表プロダクトのみ、以下略）
+
+Rob Pike
+
+- UTF-8 の開発者
+
+Robert Griesemer
+
+- V8 の開発者
+
+この 3 人が *現代的で実用的なプログラミング言語はどういうものか* を話し合う中ではじまったプロジェクトが Go
+
+- [[https://talks.golang.org/2015/how-go-was-made.slide][How Go was made]] に詳しく生い立ちが書かれている
+
+
+* 著名な開発者たち（2/2）
+
+Brad Fitzpatrick
+
+- memcached の開発者
+
+Russ Cox
+
+- Plan 9 の開発者
+
+Google 社内で開発がはじまった経緯から Google 社員が多い
+
+
+* 機能面の特徴
+
+- 静的型付け言語
+- インターフェース型がある
+- GC （ガベージコレクタ）がある
+- 並行処理の実行とコミュニケーションの機能がある
+- http, json, sql, csv など標準ライブラリがひと通り揃ってる
+
+
+* デザイン上の特徴（1/3）
+
+開発スピードと安定性を追求
+
+- そのために、単純さと可読性を高く保つことが最初から今でも意識されている
+- アップデート要望がアクセプトされるかの判断軸にもなっている
+
+[[https://golang.org/doc/faq#What_is_the_purpose_of_the_project][What is the purpose of the project?]]（[[http://golang.jp/go_faq#What_is_the_purpose_of_the_project][このプロジェクトの目標は?]]）
+[[https://golang.org/doc/faq#language_changes][Will you accept my language change?]]
+
+
+* デザイン上の特徴（2/3）
+
+コンパクトな言語仕様
+
+- だれでも読みきれて理解しきれるように抑える
+- ひとつのことをするのはひとつでいいと考える
+
+短いコンパイル時間
+
+- クラスや継承をなくす
+- 言語仕様は小さく抑える（結果、三項演算子もない）
+
+
+* デザイン上の特徴（3/3）
+
+後方互換性を重視する
+
+- 1.0 以降、言語としては安定期に入っている
+- 新機能よりも既存機能のパフォーマンス向上（GC, Security, Compile time）
+
+周辺ツールにも力をいれている
+
+- 開発スピードと安定性を維持するためには道具も言語と同じくらい大事
+- 結果、go tools をコミュニティとともに言語開発者が開発する
+
+
+* Google プロダクトとの関係
+
+[[https://golang.org/doc/go1.4][v1.4]] で Android が正式にサポートされた
+
+- Java と同じような位置に持って行くことを当面のゴールにしている（GoCon 2015 Summer の基調講演より）
+- [[https://talks.golang.org/2015/state-of-go-may.slide][v1.5]] (2015.8 予定) で、iOS も実験的にサポートされる
+
+Google App Engine は β から GA に昇格した
+
+
+* Go を使ったプロダクト
+
+Google
+
+- google dl サーバー（内部実装）[[http://talks.golang.org/2013/oscon-dl.slide][dl.google.com: Powered by Go]] より
+- youtube/vitess
+- kubernetes
+
+HashiCorp
+
+- packer
+- terraform
+- consul
+- vault
+
+docker, mackerel-agent, etcd, influxdb ...
+
+
+* Go のコンセプト: 単純さと可読性
+
+
+* GoCon 2014 Autumn Keynote
+
+1 つ目の基調講演
+
+- Simplicity is Complicated by Rob Pike
+
+2 つ目の基調講演
+
+- [[http://ukai-go-talks.appspot.com/2014/gocon.slide][Goに入ってはGoに従え]] by Fumitoshi Ukai (Go Readability Approver)
+- もとのタイトルは 「Go Readability」
+
+どちらも、単純さと可読性をいかに保つかを Go の大事なテーマとして扱っていた
+その中から一部を抜粋してご紹介（補足も紛れ込んでいるかもしれません）
+
+
+* 単純さ（1/2）
+
+Go の成功の要因は単純さにある
+
+- ちまたで言われているような早さ、容易さ、ツール、ライブラリ、並行性、インターフェースではない
+
+Go は言語機能で競うようなことはしない
+
+- Go 1.0 のリリースによって、言語機能は固定された
+- これからしばらくの間は、機能追加よりもパフォーマンスの向上や、OS とアーキテクチャのサポート対象を広げるなどに注力する
+- 他の言語にある機能要求は、言語の特徴をなくしてただ複雑にするもので、ことごとく拒否された
+
+
+* 単純さ（2/2）
+
+Go の言語仕様は 50 ページほど
+
+- C++ では全部理解するなんてありえない
+- [[https://golang.org/ref/spec][The Go Programming Language Specification]]
+- [[http://golang.jp/go_spec][Goプログラミング言語仕様]]
+
+Header はない
+
+- C, C++, Objective-C などと違って
+
+クラスや継承もない
+
+ポインタ演算もない
+
+GC があるのでメモリ解放処理も必要ない
+
+
+* 可読性
+
+機能の多さは可読性を損なう
+
+- 一つのことをするのに、一つまたは少なくとも数通りのやり方、それも単純なやり方が望ましい
+
+可読性は信頼性につながる
+
+- 書くのが楽しいよりも保守が楽であることを選択した
+
+表現力の補助のための機能にもバランスが必要
+
+- やりすぎればパフォーマンスを予測しづらくなるし、可読性も損なう
+
+_"_Want_to_understand_something_in_google_servers?_Read_the_Go_implementation!_"_
+
+
+* Go の機能: インターフェース、ゴルーチン、チャネル
+
+
+* Hello World（1/2）
+
+.play go-intro/hello.go
+
+
+* Hello World（2/2）
+
+.play go-intro/hello2.go
+
+
+* 構造体型
+
+.play go-intro/struct.go
+
+
+* メソッドの実装
+
+.play go-intro/method.go
+
+
+* Embed（埋め込み）
+
+.play go-intro/embed.go
+
+
+* インターフェース型（1/2）
+
+[[http://theburningmonk.com/2015/05/why-i-like-golang-interfaces/][Why I like Go’s interface]]
+
+.iframe https://play.golang.org/p/KRr70tFLqu 600 1000
+# .play go-intro/interface.go
+
+
+* インターフェース型（2/2）
+
+implements などの明示的な宣言が不要（Interfaces are satisfied implicitly）
+
+- 動的型付け的な側面をサポートするので開発効率につながる
+
+Duck Typing のチェックはコンパイル時にされる
+
+- ランタイムエラーにならないのでより安全
+
+振る舞いの定義と実装を分けることができる
+
+- ライブラリ実装がしやすく、保守性が高くなる
+
+[[https://golang.org/doc/faq#implements_interface][Why doesn't Go have "implements" declarations?]]
+（[[http://golang.jp/go_faq#implements_interface][Go言語に「implements」宣言がない理由は?]]）
+
+* ゴルーチン（1/3）
+
+Go ランタイムに管理される軽量なスレッド
+
+- *go構文* を使う
+- 任意の関数を別のゴルーチンとして起動することで、処理を並行して走らせることができる
+
+
+* ゴルーチン（2/3）
+
+.play go-intro/goroutine.go
+
+
+* ゴルーチン（3/3）
+
+単純さを示す特徴がある
+
+- スタックサイズがない
+- return や終了ステータスもない
+- 管理する機構もない
+- ID もない
+
+並行性は他のシステムでも提供しているが、Go は最小設計で実現している（と Rob Pike さんは言いました）
+
+
+* チャネル（1/6）
+
+複数のゴルーチン間でデータをやり取りする場合に使う
+
+- ゴルーチンは同じアドレス空間で実行されるため
+- 相互排他制御（mutual exclusion lock）機構は別にある
+
+メッセージキューのようなものを使って、データの送受信ができる
+
+- 明確なロックや条件変数がなくても、コミュニケーションによってゴルーチンの同期をとれる
+
+
+* チャネル（2/6）
+
+チャネルオペレータ *<-* を用いて値の送受信ができる直通ルートの型
+
+- データは、矢印の方向に流れる
+- オペレーターは 「<-」 だけで、「->」はない点に注意すること
+
+    // 変数 v をチャネル ch へ送る
+    // Send statements
+    ch <- v
+
+    // ch から変数 v の値を受信し、それを変数 w へ割り当てる
+    // Receive operator
+    w := <-ch
+
+* チャネル（3/6）
+
+.play go-intro/channel.go
+
+
+* チャネル（4/6）select 文
+
+複数のチャネルに対する読み書き（= 通信）を同時に制御するために使われる
+
+.play go-intro/select.go
+
+
+* チャネル（5/6）具体例
+
+[[https://github.com/mitchellh/packer/blob/edf3415c6e2248c8096f9c16cbad5022b73d6f21/post-processor/vagrant-cloud/step_verify_upload.go#L28-L98][packer/post-processor/vagrant-cloud/step_verify_upload.go]]
+
+Vagrant Cloud への通信処理を別のゴルーチンで行いつつ、呼び出し元でタイムアウト制御をしている
+
+こうすることで次のメリットがある
+
+- タイムアウト制御に加えて、別の制御が必要になっても見通しの良さを保って拡張できる
+- キーボードからの操作などがブロックされずに処理できる
+
+
+* チャネル（6/6）
+
+Do not communicate by sharing memory, instead, share memory by communicating
+
+メモリ共有によるコミュニケーションではなく、コミュニケーションによってメモリを共有すること
+
+[[http://blog.golang.org/share-memory-by-communicating][Share Memory By Communicating - The Go Blog]]
+[[https://golang.org/doc/faq#csp][Why build concurrency on the ideas of CSP?]]
+（[[http://golang.jp/go_faq#csp][並列性がCSPをベースにしている理由は?]]）
+
+
+* Go tools
+
+
+* go コマンドとツール
+
+長い Makefile がなくてもいいようにするために（導入の経緯: [[http://mattn.kaoriya.net/software/lang/go/20120216093718.htm][THE GO TOOL]]）
+
+- コンパイル (build)
+- コンパイルして実行 (run)
+- インストール (install)
+- リモートパッケージの取得 (get)
+- 整形 (fmt)
+- 古い API の更新 (fix)
+- リネーム (rename)
+- リント (lint)
+- オートインポート (import)
+- ヒューリスティックエラー (vet)
+- ドキュメント生成 (doc)
+
+
+* GOPATH 環境変数
+
+唯一、必須な環境変数
+
+- プロジェクトのワークスペースを指定する
+
+go コマンドはインポートパスを参照して、$GOPATH が指すディレクトリ配下から依存関係を発見する
+
+- つまり、おもにインポート文を解決するために使用される
+
+コンパイルした生成物は $GOPATH 配下に配置される
+
+* go build
+
+Go パッケージと依存関係をコンパイルする
+
+- コンパイルしたパッケージのインストールは行わない（それは後述する go install が行うこと）
+- ただし、対象に main パッケージ が含まれていた場合は実行可能ファイルが生成される
+
+    $ go build go-intro/hello.go
+    $ ./hello
+    $ Hello, 世界
+
+* go run
+
+Go パッケージと依存関係をコンパイルして生成された実行可能ファイルを実行する
+
+- コンパイルしたパッケージのインストールは行わない（それは後述する go install が行うこと）
+- 生成された実行可能ファイルは実行後削除される
+
+    $ go run go-intro/hello.go
+    $ Hello, 世界
+
+* go install
+
+Go パッケージと依存関係をコンパイルしてインストールをする
+
+このコマンドは実際には内部で 2 ステップの操作に分かれる
+
+- 第1ステップはリザルトファイルの生成（ *実行可能ファイル* または *aパッケージ* ）
+- 第2ステップはコンパイルし終わった結果を *$GOPATH/pkg* または *$GOPATH/bin* に移動する操作
+
+    $ go install go-intro/hello.go
+    $ ./godeps/bin/hello
+    $ Hello, 世界
+
+
+* go get
+
+Go パッケージと依存関係をダウンロードしてインストールする
+
+このコマンドは動的にリモートコードパッケージを取得するために使われる
+
+- 現在 BitBucket、GitHub、Google CodeとLaunchpadをサポートしている
+
+また、このコマンドは実際には内部で 2 ステップの操作に分かれている
+
+- 第1ステップは *ソースコードパッケージのダウンロード*
+- 第2ステップは *go_installの実行*
+
+    $ go get github.com/mattn/yomikata
+    $ yomikata wercker
+    ワーカー (2pt)
+    ウェッカ― (1pt)
+    ウェーカー (1pt)
+    ウェルカー (0pt)
+
+* go test
+
+Go パッケージをテストする
+
+*_test.go ファイルパターンにマッチする名前をもつすべてのファイルと一緒に、各パッケージを再コンパイルする
+
+- パッケージ宣言をし、 *_test* サフィックスを有するテストファイルは個々のパッケージとしてコンパイルされ、main のテストバイナリと共にリンクされ実行される
+
+go testコマンド と *testingパッケージ* で構成される軽量なテストフレームワークが標準でサポートされている
+
+- func (t *testing.T) というシグネチャのTestXXXという名前の関数 を作成する
+- テストフレームワークはこれらの関数を一つ一つ実行し、 *t.Error* や *t.Fail* といったフェイル関数が呼ばれると、テストが失敗したとみなす
+
+    $ go test ./...
+    ok      _/mtburn/dev/go/dbq/command/query       0.031s
+    $ go test -v ./...
+    ...
+
+* コマンドラインツール
+
+
+* go で開発される理由 (1/2)
+
+Go コンパイラは Plan9 の影響をうけているので、複数アーキテクチャ・複数 OS 向けにコンパイルできる
+
+- 複数の環境向けにバイナリを配布できるという意味
+- 言語環境が構築されていなくても実行できる利点がある
+
+.image go-intro/spaceglenda300.jpg 300 _
+
+
+* go で開発される理由 (2/2)
+
+コンパイル時にすべてのパッケージは静的にリンクされるため、実行ファイルは１つのバイナリファイルになる
+
+- このためデプロイなどの負担も軽くなり、運用が楽になる
+
+キーボード操作を待ち受けつつ、別スレッドで通信処理をするケースで開発しやすい
+
+
+* 具体例
+
+[[https://github.com/yoheimuta/dbq][yoheimuta/dbq]]
+
+- CLI tool to easily Decorate BigQuery table name
+- BigQuery にクエリ投げるときに簡単にデコレータをつけられるラッパーツール
+
+これから紹介するパッケージなどを使っているので、参考までに
+
+
+* 依存パッケージの管理
+
+[[https://github.com/pote/gpm][pote/gpm]] を使ってる
+
+- タグ、リビジョンを固定して管理したかったため
+- [[https://github.com/pote/gvp][pote/gvp]] とセットで GOPATH と PATH の管理も一緒にできる
+
+
+* コマンドラインオプションなど
+
+[[https://github.com/codegangsta/cli][codegangsta/cli]] を使ってる
+
+- スター数が多く、名前もクール
+- 特に不足はないため
+
+
+* テストフレームワーク
+
+[[https://github.com/smartystreets/goconvey][smartystreets/goconvey]] を使う
+
+- テストフレームワークを使うこと自体賛否両論ありつつ、assert 関数は便利なため
+
+
+* クロスコンパイル
+
+[[https://github.com/mitchellh/gox][mitchellh/gox]] を使う
+
+- デファクト
+
+
+* CI
+
+[[http://wercker.com/][wercker]] を使う
+
+- バックエンドが Docker で構築が早い
+- プライベートリポジトリも無料
+
+box （実行環境）と step（実行コマンドの集合）を自作して登録できる
+
+- [[https://github.com/tcnksm/wercker-box-gox][tcnksm/wercker-box-gox]] を使う
+- gox でクロスコンパイルしたバイナリを zip して、それを GitHub Releases に公開する
+
+
+* デプロイ
+
+[[https://github.com/tcnksm/ghr][tcnksm/ghr]] を使う
+
+- wercker-box-gox 内で GitHub Releases に公開するところで使われている
+
+
+* リファレンスの紹介
+
+
+* オンライン
+
+[[http://golang-jp.org/doc/][公式サイト]]より
+
+- [[http://go-tour-jp.appspot.com/#1][A Tour of Go]]
+- [[http://golang-jp.org/doc/code.html][Goコードの書き方]]
+- [[http://golang.jp/go_faq][よくある質問 (FAQ)]]
+- [[http://golang.jp/go_spec][Goプログラミング言語仕様]]
+
+読み物として
+
+- [[http://kuenishi.hatenadiary.jp/entry/2013/04/14/112124][そろそろGoについて一言いっておくか]]
+
+* オフライン
+
+[[http://gihyo.jp/magazine/wdpress/archive/2014/vol82][WEB+DB PRESS Vol.82]]
+
+[[http://www.amazon.co.jp/%E6%94%B9%E8%A8%822%E7%89%88-%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E3%82%8F%E3%81%8B%E3%82%8B-Go%E8%A8%80%E8%AA%9E-%E5%8F%A4%E5%B7%9D-%E6%98%87/dp/4863541783][改訂2版 基礎からわかる Go言語]]
+
